@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<root>
+	<all_weights>
+		<weights_matrix index="0" row_amount="4" column_amount="2">
+			<weight row_index="0" column_index="0">-0.2394594394307556</weight>
+			<weight row_index="0" column_index="1">-0.04101739067594351</weight>
+			<weight row_index="1" column_index="0">0.03945515394584387</weight>
+			<weight row_index="1" column_index="1">-0.026390335099193418</weight>
+			<weight row_index="2" column_index="0">-0.17938816847133243</weight>
+			<weight row_index="2" column_index="1">-0.007576920389975761</weight>
+			<weight row_index="3" column_index="0">0.17734172910562762</weight>
+			<weight row_index="3" column_index="1">0.17039321679242442</weight>
+		</weights_matrix>
+		<weights_matrix index="1" row_amount="2" column_amount="4">
+			<weight row_index="0" column_index="0">0.002120720693561673</weight>
+			<weight row_index="0" column_index="1">0.1411508215319126</weight>
+			<weight row_index="0" column_index="2">0.24711733917342388</weight>
+			<weight row_index="0" column_index="3">-0.15697219237678062</weight>
+			<weight row_index="1" column_index="0">-0.14062606289348067</weight>
+			<weight row_index="1" column_index="1">0.13043488360824035</weight>
+			<weight row_index="1" column_index="2">0.04714008899858163</weight>
+			<weight row_index="1" column_index="3">-0.17702699157720958</weight>
+		</weights_matrix>
+	</all_weights>
+	<all_biases>
+		<biases_matrix index="0" row_amount="4">
+			<bias row_index="0">-0.011075919361411612</bias>
+			<bias row_index="1">0.01872720342385805</bias>
+			<bias row_index="2">-0.04484947335827032</bias>
+			<bias row_index="3">0.012853856987998102</bias>
+		</biases_matrix>
+		<biases_matrix index="1" row_amount="2">
+			<bias row_index="0">-0.012850210053776668</bias>
+			<bias row_index="1">0.07326845187733508</bias>
+		</biases_matrix>
+	</all_biases>
+</root>
