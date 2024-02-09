@@ -1,12 +1,14 @@
+import csv
 import random
 
-from NeuralNetwork import NeuralNetwork, load_neural_network_from_xml_file
+from NeuralNetwork import NeuralNetwork
 import numpy as np
 import pandas as pd
 
 
 def rec_xor_test():
-    neural_network = NeuralNetwork([2, 6, 4, 4], 0.1, epoch_amount=100000)
+    nn = NeuralNetwork()
+    nn.create([2, 6, 4, 4], 0.1, epoch_amount=100000)
     data = [
         ([1, 1], [1, 0, 0, 0]),
         ([1, 0], [0, 1, 0, 0]),
@@ -14,16 +16,17 @@ def rec_xor_test():
         ([0, 0], [0, 0, 0, 1])
     ]
 
-    neural_network.train_with_tuple_data(data)
+    nn.train_with_tuple_data(data)
 
-    print(neural_network.predict([1, 1]))
-    print(neural_network.predict([1, 0]))
-    print(neural_network.predict([0, 1]))
-    print(neural_network.predict([0, 0]))
+    print(nn.predict([1, 1]))
+    print(nn.predict([1, 0]))
+    print(nn.predict([0, 1]))
+    print(nn.predict([0, 0]))
 
 
 def xor_test():
-    neural_network = NeuralNetwork([2, 6, 1], 0.2, epoch_amount=100000)
+    nn = NeuralNetwork()
+    nn.create([2, 6, 1], 0.2, epoch_amount=100000)
     data = [
         ([1, 1], [0]),
         ([1, 0], [1]),
@@ -31,16 +34,16 @@ def xor_test():
         ([0, 0], [0])
     ]
 
-    neural_network.train_with_tuple_data(data)
+    nn.train_with_tuple_data(data)
 
-    print(neural_network.predict([1, 1]))
-    print(neural_network.predict([1, 0]))
-    print(neural_network.predict([0, 1]))
-    print(neural_network.predict([0, 0]))
+    print(nn.predict([1, 1]))
+    print(nn.predict([1, 0]))
+    print(nn.predict([0, 1]))
+    print(nn.predict([0, 0]))
 
 
-def load_digit_data():
-    raw_data = pd.read_csv('mnist_data.csv')
+def load_digit_data(path):
+    raw_data = pd.read_csv(path)
     data = []
     for single_row in raw_data.values:
         expected = [0 for x in range(10)]
@@ -51,16 +54,20 @@ def load_digit_data():
 
 
 def test_digit():
-    data = load_digit_data()
-    random.shuffle(data)
+    training_data1 = load_digit_data(
+        "D:\\GoogleDriveMirror\\Projects\\NeuralNetworkProject\\mnist_data\\mnist_train_data1.csv")
 
-    perc = int(len(data) / 8)
-    training_data = data[perc + 1:]
-    test_data = data[0:perc]
+    training_data2 = load_digit_data(
+        "D:\\GoogleDriveMirror\\Projects\\NeuralNetworkProject\\mnist_data\\mnist_train_data1.csv")
+
+    training_data = training_data1 + training_data2
+
+    test_data = load_digit_data("D:\\GoogleDriveMirror\\Projects\\NeuralNetworkProject\\mnist_data\\mnist_test_data.csv")
 
     print("Data done")
 
-    nn = NeuralNetwork([784, 16, 16, 10], learning_rate=0.01, epoch_amount=3)
+    nn = NeuralNetwork()
+    nn.create([784, 16, 16, 10], learning_rate=0.01, epoch_amount=3)
 
     nn.train_with_tuple_data(training_data)
 
@@ -91,12 +98,12 @@ def test():
     for index in range(len(data)):
         data[index] = ([x/255.0 for x in data[index][0]], data[index][1])
 
-    nn = NeuralNetwork([784, 64, 10], learning_rate=0.01, epoch_amount=20000)
+    NeuralNetwork.create([784, 64, 10], learning_rate=0.01, epoch_amount=20000)
 
-    nn.train_with_tuple_data(data)
+    NeuralNetwork.train_with_tuple_data(data)
 
     for single in data:
-        prediction = [round(x, 3) for x in nn.predict(single[0])]
+        prediction = [round(x, 3) for x in NeuralNetwork.predict(single[0])]
         print(f"{prediction}")
         print(f"{single[1]}")
         print(f"")
@@ -105,7 +112,7 @@ def test():
 if __name__ == '__main__':
     #test()
     #xor_test()
-    #test_digit()
+    test_digit()
     #rec_xor_test()
-    load_neural_network_from_xml_file('D:\\GoogleDriveMirror\\Projects\\NeuralNetworkProject\\test.xml')
+
 

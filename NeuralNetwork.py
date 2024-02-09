@@ -5,12 +5,25 @@ import os
 
 
 class NeuralNetwork:
-    def __init__(self, layers_sizes: list[int], learning_rate: float = 0.1, expected_max_error: float = 0.001,
-                 epoch_amount: int = 100):
+    def __init__(self):
         """
         This class is used for creating, testing and exploiting standard (classic) Neural Network.
         Its supports network with any amount of layers as well as neurons in each layer.
         Training is being done using backpropagation.
+        """
+        self.__biases_for_layers = None
+        self.__weights_for_layers = None
+        self.__layers = None
+        self.__layers_sizes = None
+        self.__epoch_amount = None
+        self.__expected_max_error = None
+        self.__learning_rate = None
+
+    def create(self, layers_sizes: list[int], learning_rate: float = 0.1, expected_max_error: float = 0.001,
+               epoch_amount: int = 100):
+        """
+        Set-up neural network
+
         :param layers_sizes:
             List of layers, each (int) value represents amount of neurons in given layer.
             First layer (index = 0) represent input layer, last (index = len - 1) - output layer.
@@ -24,6 +37,7 @@ class NeuralNetwork:
         :param epoch_amount:
             This int value controls how many iteration of learning should be performed.
         """
+
         if len(layers_sizes) < 2:
             raise Exception("There must be no less than 2 layers!")
         if learning_rate < 0:
@@ -53,7 +67,39 @@ class NeuralNetwork:
             # setup biases matrix for (next index - skipping input layer) layers
             self.__biases_for_layers.append(np.array([(x - 0.5) / 5 for x in np.random.rand(next_size, 1)]))
 
-    # def create(self):
+    def create_from_xml_file(self, file_path: str):
+        tree = ET.parse(file_path)
+        root = tree.getroot()
+
+        self.__learning_rate = float(root.find('learning_rate').text)
+        self.__expected_max_error = float(root.find('expected_max_error').text)
+        self.__epoch_amount = int(root.find('epoch_amount').text)
+
+        self.__layers_sizes = [int(x.text) for x in root.find('layers_sizes').findall('layer_size')]
+
+        # set up layers (fill with zeros)
+        self.__layers = [np.zeros((x, 1)) for x in self.__layers_sizes]
+
+        # declare lists of matrices
+        self.__weights_for_layers = []  # for weights
+        self.__biases_for_layers = []  # for biases
+
+        for weights_matrix_xml in root.find('all_weights').findall('weights_matrix'):
+            shape = (int(weights_matrix_xml.attrib['row_amount']), int(weights_matrix_xml.attrib['column_amount']))
+            weights_matrix = np.zeros(shape)
+            for weight_xml in weights_matrix_xml.findall('weight'):
+                row, column = int(weight_xml.attrib['row_index']), int(weight_xml.attrib['column_index'])
+                weights_matrix[row][column] = float(weight_xml.text)
+            self.__weights_for_layers.append(weights_matrix)
+
+        for biases_matrix_xml in root.find('all_biases').findall('biases_matrix'):
+            shape = (int(biases_matrix_xml.attrib['row_amount']), 1)
+            biases_matrix = np.zeros(shape)
+            for bias_xml in biases_matrix_xml.findall('bias'):
+                row = int(bias_xml.attrib['row_index'])
+                biases_matrix[row][0] = float(bias_xml.text)
+            self.__biases_for_layers.append(biases_matrix)
+        print("DONE")
 
     def predict(self, inputs: list) -> list:
         """
@@ -100,7 +146,7 @@ class NeuralNetwork:
                           f'Current mean error: {round(error, 4)}\n')
 
                 if error < self.__expected_max_error:
-                    return None
+                    return
 
                 self.__backpropagation(expected)
                 rep_in_epoch += 1
@@ -126,14 +172,23 @@ class NeuralNetwork:
                 error = calculate_mse_cost(expected_results, self.__layers[-1])
                 print(f'Epoch: {epoch}\nCurrent mean error: {round(error, 3)}\n')
                 if error < self.__expected_max_error:
-                    return None
+                    return
                 self.__backpropagation(expected_results[current_point])
 
     def save_to_xml_file(self, file_path: str) -> bool:
         xml_root = ET.Element('root')
 
+        ET.SubElement(xml_root, 'epoch_amount').text = str(self.__epoch_amount)
+        ET.SubElement(xml_root, 'expected_max_error').text = str(self.__expected_max_error)
+        ET.SubElement(xml_root, 'learning_rate').text = str(self.__learning_rate)
+
+        xml_layer_sizes = ET.SubElement(xml_root, 'layers_sizes')
+
         xml_all_weights = ET.SubElement(xml_root, 'all_weights')
         xml_all_biases = ET.SubElement(xml_root, 'all_biases')
+
+        for index in range(len(self.__layers_sizes)):
+            ET.SubElement(xml_layer_sizes, 'layer_size', column_index=f'{index}').text = str(self.__layers_sizes[index])
 
         for index in range(len(self.__weights_for_layers)):
             weights = self.__weights_for_layers[index]
@@ -158,8 +213,6 @@ class NeuralNetwork:
         tree = ET.ElementTree(xml_root)
         ET.indent(tree, space="\t", level=0)
         tree.write(file_path, encoding='UTF-8', xml_declaration=True)
-
-
 
     def __feed_forward(self, inputs: list):
         if np.shape(inputs) != (self.__layers_sizes[0],):
@@ -213,19 +266,6 @@ class NeuralNetwork:
 
             # calculate error for next layer in respect for its weight
             errors_matrix = np.matmul(self.__weights_for_layers[index].transpose(), errors_matrix)
-
-
-def load_neural_network_from_xml_file(file_path: str) -> NeuralNetwork:
-    tree = ET.parse(file_path)
-    root = tree.getroot()
-
-    for weights_matrix_xml in root.find('all_weights').findall('weights_matrix'):
-        shape = (int(weights_matrix_xml.attrib['row_amount']), int(weights_matrix_xml.attrib['column_amount']))
-        weights_matrix = np.zeros(shape)
-        for weight_xml in weights_matrix_xml.findall('weight'):
-            row, column = int(weight_xml.attrib['row_index']), int(weight_xml.attrib['column_index'])
-            weights_matrix[row][column] = weight_xml.text
-
 
 
 def calculate_mse_cost(expected_values, real_values):
