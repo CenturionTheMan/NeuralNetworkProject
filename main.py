@@ -1,45 +1,9 @@
 import csv
 import random
 
-from NeuralNetwork import NeuralNetwork
+import NeuralNetwork as nn
 import numpy as np
 import pandas as pd
-
-
-def rec_xor_test():
-    nn = NeuralNetwork()
-    nn.create([2, 6, 4, 4], 0.1, epoch_amount=100000)
-    data = [
-        ([1, 1], [1, 0, 0, 0]),
-        ([1, 0], [0, 1, 0, 0]),
-        ([0, 1], [0, 0, 1, 0]),
-        ([0, 0], [0, 0, 0, 1])
-    ]
-
-    nn.train_with_tuple_data(data)
-
-    print(nn.predict([1, 1]))
-    print(nn.predict([1, 0]))
-    print(nn.predict([0, 1]))
-    print(nn.predict([0, 0]))
-
-
-def xor_test():
-    nn = NeuralNetwork()
-    nn.create([2, 6, 1], 0.2, epoch_amount=100000)
-    data = [
-        ([1, 1], [0]),
-        ([1, 0], [1]),
-        ([0, 1], [1]),
-        ([0, 0], [0])
-    ]
-
-    nn.train_with_tuple_data(data)
-
-    print(nn.predict([1, 1]))
-    print(nn.predict([1, 0]))
-    print(nn.predict([0, 1]))
-    print(nn.predict([0, 0]))
 
 
 def load_digit_data(path):
@@ -66,8 +30,7 @@ def test_digit():
 
     print("Data done")
 
-    nn = NeuralNetwork()
-    nn.create([784, 16, 16, 10], learning_rate=0.01, epoch_amount=3)
+    nn.initialize([784, 16, 16, 10], learning_rate=0.01, epoch_amount=3)
 
     nn.train_with_tuple_data(training_data)
 
@@ -98,21 +61,19 @@ def test():
     for index in range(len(data)):
         data[index] = ([x/255.0 for x in data[index][0]], data[index][1])
 
-    NeuralNetwork.create([784, 64, 10], learning_rate=0.01, epoch_amount=20000)
+    nn.initialize([784, 64, 10], learning_rate=0.01, epoch_amount=20000)
 
-    NeuralNetwork.train_with_tuple_data(data)
+    nn.train_with_tuple_data(data)
 
     for single in data:
-        prediction = [round(x, 3) for x in NeuralNetwork.predict(single[0])]
+        prediction = [round(x, 3) for x in nn.predict(single[0])]
         print(f"{prediction}")
         print(f"{single[1]}")
         print(f"")
 
 
 if __name__ == '__main__':
-    #test()
-    #xor_test()
+    # test()
     test_digit()
-    #rec_xor_test()
 
 
