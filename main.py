@@ -1,9 +1,10 @@
 import csv
 import random
 
-import NeuralNetwork as nn
+import neural_network as nn
 import numpy as np
 import pandas as pd
+import view_mnist as view
 
 
 def load_digit_data(path):
@@ -74,6 +75,7 @@ def test():
 
 if __name__ == '__main__':
     # test()
-    test_digit()
+    #test_digit()
+    view.run_gui()
 
 

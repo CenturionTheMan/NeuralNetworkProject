@@ -198,8 +198,9 @@ def save_to_xml_file(file_path: str) -> None:
 
 
 def __feed_forward(inputs: list):
-    if np.shape(inputs) != (__layers_sizes[0],):
-        raise Exception(f'Wrong input array size! Should be {(__layers_sizes[0],)} and was {np.shape(inputs)}')
+    if np.shape(inputs) != (__layers_sizes[0],) and np.shape(inputs) != (__layers_sizes[0], 1):
+        raise Exception(f'Wrong input array size! Should be {(__layers_sizes[0],)} or {(__layers_sizes[0], 1)} '
+                        f'and was {np.shape(inputs)}')
 
     # assign input layer values
     __layers[0] = np.array(inputs).reshape(len(inputs), 1)
