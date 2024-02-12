@@ -1,3 +1,4 @@
+import math
 import random
 import numpy as np
 import xml.etree.ElementTree as ET
@@ -12,8 +13,7 @@ __expected_max_error: float
 __learning_rate: float
 
 
-def initialize(layers_sizes: list[int], learning_rate: float = 0.1, expected_max_error: float = 0.001,
-               epoch_amount: int = 100):
+def initialize(*layers_sizes: int):
     """
     This class is used for creating, testing and exploiting standard (classic) Neural Network.
     Its supports network with any amount of layers as well as neurons in each layer.
@@ -24,27 +24,12 @@ def initialize(layers_sizes: list[int], learning_rate: float = 0.1, expected_max
         List of layers, each (int) value represents amount of neurons in given layer.
         First layer (index = 0) represent input layer, last (index = len - 1) - output layer.
         List elements in between creates hidden layers
-    :param learning_rate:
-        It controls rate of learning. Value below 0 will rise an exception.
-        It is suggested to do not exceed value 1.
-    :param expected_max_error:
-        While training MSE (mean square error) is being calculated.
-        Learning will stop if value of any training point is lower than this threshold.
-    :param epoch_amount:
-        This int value controls how many iteration of learning should be performed.
     """
 
-    global __learning_rate, __expected_max_error, __epoch_amount
     global __layers_sizes, __layers, __weights_for_layers, __biases_for_layers
 
     if len(layers_sizes) < 2:
         raise Exception("There must be no less than 2 layers!")
-    if learning_rate < 0:
-        raise Exception("Learning rate must be positive value")
-
-    __learning_rate = learning_rate
-    __expected_max_error = expected_max_error
-    __epoch_amount = epoch_amount
 
     __layers_sizes = layers_sizes
 
@@ -116,14 +101,11 @@ def predict(inputs: list) -> list:
     __feed_forward(inputs)
     raw = __layers[-1].transpose()[0]
 
-    if len(raw) == 1:
-        return list(raw)
-    else:
-        summarized = sum(raw)
-        return [x / summarized for x in raw]
+    return list(raw)
 
 
-def train_with_tuple_data(data: list[tuple[list, list]]) -> None:
+def train_with_stochastic_gradient_descent(data: list[tuple[list, list]], learning_rate: float = 0.1,
+                                           expected_max_error: float = 0.001, epoch_amount: int = 100) -> None:
     """
     This function will initiate neural network training. This may take a while.
     IMPORTANT: inputs should be normalized (between 0 and 1).
@@ -132,7 +114,24 @@ def train_with_tuple_data(data: list[tuple[list, list]]) -> None:
         Each tuple should be formatted as follows:
         Index 0: input layer data
         Index 1: expected output layer data
+    :param learning_rate:
+        It controls rate of learning. Value below 0 will rise an exception.
+        It is suggested to do not exceed value 1.
+    :param expected_max_error:
+        While training MSE (mean square error) is being calculated.
+        Learning will stop if value of any training point is lower than this threshold.
+    :param epoch_amount:
+        This int value controls how many iteration of learning should be performed.
     """
+
+    global __learning_rate, __expected_max_error, __epoch_amount
+
+    if learning_rate < 0:
+        raise Exception("Learning rate must be positive value")
+
+    __learning_rate = learning_rate
+    __expected_max_error = expected_max_error
+    __epoch_amount = epoch_amount
 
     for epoch in range(__epoch_amount):
         random.shuffle(data)
@@ -143,12 +142,12 @@ def train_with_tuple_data(data: list[tuple[list, list]]) -> None:
 
             __feed_forward(input_point)
 
-            error = __calculate_mse_cost(expected, __layers[-1])
+            error = __calculate_cross_entropy_cost(expected, __layers[-1])
 
             if rep_in_epoch % 100 == 0:
                 print(f'Epoch: {epoch + 1}\n'
                       f'Epoch percent finish: {round(100 * rep_in_epoch / len(data), 2)}%\n'
-                      f'Current mean error: {round(error, 4)}\n')
+                      f'Current error: {round(error, 4)}\n')
 
             if error < __expected_max_error:
                 return
@@ -214,7 +213,10 @@ def __feed_forward(inputs: list):
         layer_with_added_biases = np.add(multiplied_by_weights_layer, __biases_for_layers[index])
 
         # apply activation function
-        activated_layer = __sigmoid(layer_with_added_biases)
+        if index == len(__layers) - 2:
+            activated_layer = __softmax(layer_with_added_biases)
+        else:
+            activated_layer = __sigmoid(layer_with_added_biases)
 
         # save results in next layer
         __layers[index + 1] = activated_layer
@@ -237,10 +239,11 @@ def __backpropagation(expected_results: list):
         # since derivative of sigmoid is sig(x) * (1 - sig(x)) and layer are
         # already passed through sig(x) function only (1 - sig(x)) correction is needed.
         # Have that in mind if activation function should be changed.
-        sigmoid_derivative_layer = __layers[index + 1] * (1 - __layers[index + 1])
+        # NOTE: this is the same for softmax
+        activation_derivative_layer = __layers[index + 1] * (1 - __layers[index + 1])
 
         # calculate gradient
-        gradient_matrix = sigmoid_derivative_layer * errors_matrix * __learning_rate
+        gradient_matrix = activation_derivative_layer * errors_matrix * __learning_rate
 
         # calculate matrix with delta weights (values to change weights in given layer)
         delta_weights_matrix = np.matmul(gradient_matrix, __layers[index].transpose())
@@ -253,11 +256,23 @@ def __backpropagation(expected_results: list):
         errors_matrix = np.matmul(__weights_for_layers[index].transpose(), errors_matrix)
 
 
-def __calculate_mse_cost(expected_values, real_values):
+def __calculate_cross_entropy_cost(expected_values, real_values):
     val_sum = 0
     for expected, real in zip(expected_values, real_values):
-        val_sum = val_sum + pow(expected - real[0], 2)
-    return val_sum / len(real_values)
+        val_sum += expected * math.log(real)
+    return -val_sum
+
+
+#def __calculate_mse_cost(expected_values, real_values):
+#    val_sum = 0
+#    for expected, real in zip(expected_values, real_values):
+#        val_sum = val_sum + pow(expected - real[0], 2)
+#    return val_sum / len(real_values)
+
+
+def __softmax(X):
+    tmp = np.exp(X)
+    return tmp / np.sum(tmp)
 
 
 def __sigmoid(x):

@@ -62,9 +62,9 @@ def test():
     for index in range(len(data)):
         data[index] = ([x/255.0 for x in data[index][0]], data[index][1])
 
-    nn.initialize([784, 64, 10], learning_rate=0.01, epoch_amount=20000)
+    nn.initialize(784, 16, 16, 10)
 
-    nn.train_with_tuple_data(data)
+    nn.train_with_stochastic_gradient_descent(data, learning_rate=0.01, epoch_amount=10000)
 
     for single in data:
         prediction = [round(x, 3) for x in nn.predict(single[0])]
@@ -73,9 +73,10 @@ def test():
         print(f"")
 
 
+
 if __name__ == '__main__':
-    # test()
+    test()
     #test_digit()
-    view.run_gui()
+    #view.run_gui()
 
 
