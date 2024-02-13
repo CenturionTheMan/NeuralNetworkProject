@@ -13,11 +13,14 @@ __canvas_data = np.zeros(shape=(28, 28), dtype=int)
 __canvas = None
 __labels_perc = None
 
+__left_click_last_pos = tuple
+__right_click_last_pos = tuple
+
 
 def run_gui():
     global __pixel_size, __canvas_data, __canvas, __labels_perc
 
-    nn.initialize([784, 16, 16, 10], learning_rate=0.005, epoch_amount=5)
+    nn.initialize(784, 16, 16, 10)
 
     root = Tk()
     draw_width = 560
@@ -68,7 +71,9 @@ def show_open_dialog():
 
 
 def show_save_dialog():
-    fd.asksaveasfile(initialfile='Untitled.xml', defaultextension=".xml", filetypes=[("XML Files", "*.xml")])
+    filename = fd\
+        .asksaveasfile(initialfile='Untitled.xml', defaultextension=".xml", filetypes=[("XML Files", "*.xml")]).name
+    nn.save_to_xml_file(filename)
 
 
 def init_nn_learning_on_new_thread():
@@ -101,7 +106,8 @@ def init_nn_learning():
 
     print("Data loaded")
 
-    nn.train_with_tuple_data(training_data)
+    nn.train_with_mini_batch_gradient_descent(training_data, epoch_amount=30, batch_size=50, expected_max_error=0.01,
+                                              learning_rate=0.07)
 
     correct_prediction = 0
     for single in test_data:
@@ -155,19 +161,34 @@ def tmp():
 
 
 def on_left_mouse_click(event):
+    global __left_click_last_pos
     x_pos = event.x
     y_pos = event.y
     index_x = int(np.floor(x_pos / __pixel_size))
     index_y = int(np.floor(y_pos / __pixel_size))
+
+    if __left_click_last_pos[0] == index_x and __left_click_last_pos[1] == index_y:
+        return
+
+    __left_click_last_pos = (index_x, index_y)
+
     update_canvas(index_x, index_y, 1)
     Thread(target=on_canvas_data_changed).start()
 
 
 def on_right_mouse_click(event):
+    global __right_click_last_pos
+
     x_pos = event.x
     y_pos = event.y
     index_x = int(np.floor(x_pos / __pixel_size))
     index_y = int(np.floor(y_pos / __pixel_size))
+
+    if __right_click_last_pos[0] == index_x and __right_click_last_pos[1] == index_y:
+        return
+
+    __right_click_last_pos = (index_x, index_y)
+
     update_canvas(index_x, index_y, 0)
     Thread(target=on_canvas_data_changed).start()
 

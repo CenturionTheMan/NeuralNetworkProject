@@ -8,8 +8,6 @@ __biases_for_layers: list
 __weights_for_layers: list
 __layers: list
 __layers_sizes: list
-__epoch_amount: int
-__expected_max_error: float
 __learning_rate: float
 
 
@@ -53,15 +51,10 @@ def initialize(*layers_sizes: int):
 
 
 def load_from_xml_file(file_path: str):
-    global __learning_rate, __expected_max_error, __epoch_amount
     global __layers_sizes, __layers, __weights_for_layers, __biases_for_layers
 
     tree = ET.parse(file_path)
     root = tree.getroot()
-
-    __learning_rate = float(root.find('learning_rate').text)
-    __expected_max_error = float(root.find('expected_max_error').text)
-    __epoch_amount = int(root.find('epoch_amount').text)
 
     __layers_sizes = [int(x.text) for x in root.find('layers_sizes').findall('layer_size')]
 
@@ -104,8 +97,64 @@ def predict(inputs: list) -> list:
     return list(raw)
 
 
+def train_with_mini_batch_gradient_descent(data: list[tuple[list, list]], learning_rate: float = 0.1,
+                                           epoch_amount: int = 40, batch_size: int = 10,
+                                           expected_max_error: float = 0.01) -> None:
+    """
+        This function will initiate neural network training. This may take a while.
+        IMPORTANT: inputs should be normalized (between 0 and 1).
+        :param data:
+            List of tuples. Each tuple is single training point.
+            Each tuple should be formatted as follows:
+            Index 0: input layer data
+            Index 1: expected output layer data
+        :param learning_rate:
+            It controls rate of learning. Value below 0 will rise an exception.
+            It is suggested to do not exceed value 1.
+        :param epoch_amount:
+            This int value controls how many iteration of learning should be performed.
+        :param batch_size
+            The size of single batch
+        :param expected_max_error:
+            While training MSE (mean square error) is being calculated.
+            Learning will stop if value of any training point is lower than this threshold.
+        """
+    global __learning_rate
+
+    if learning_rate < 0:
+        raise Exception("Learning rate must be positive value")
+    if batch_size > len(data):
+        raise Exception('Batch size must be smaller than data length')
+
+    __learning_rate = learning_rate
+
+    for epoch in range(epoch_amount):
+        random.shuffle(data)
+        batch_begin_index = 0
+
+        while batch_begin_index < len(data):
+            if batch_begin_index + batch_size < len(data):
+                batch_samples = data[batch_begin_index:batch_begin_index+batch_size]
+            else:
+                batch_samples = data[batch_begin_index:]
+
+            input_points = [x[0] for x in batch_samples]
+            expected_points = [x[1] for x in batch_samples]
+
+            error = __perform_learning_iteration(input_points, expected_points)
+
+            print(f'Epoch: {epoch + 1}\n'
+                  f'Epoch percent finish: {round(100 * batch_begin_index / len(data), 2)}%\n'
+                  f'Batch error: {round(error, 4)}\n')
+
+            if error <= expected_max_error:
+                return
+
+            batch_begin_index += batch_size
+
+
 def train_with_stochastic_gradient_descent(data: list[tuple[list, list]], learning_rate: float = 0.1,
-                                           expected_max_error: float = 0.001, epoch_amount: int = 100) -> None:
+                                           epoch_amount: int = 100) -> None:
     """
     This function will initiate neural network training. This may take a while.
     IMPORTANT: inputs should be normalized (between 0 and 1).
@@ -117,51 +166,35 @@ def train_with_stochastic_gradient_descent(data: list[tuple[list, list]], learni
     :param learning_rate:
         It controls rate of learning. Value below 0 will rise an exception.
         It is suggested to do not exceed value 1.
-    :param expected_max_error:
-        While training MSE (mean square error) is being calculated.
-        Learning will stop if value of any training point is lower than this threshold.
     :param epoch_amount:
         This int value controls how many iteration of learning should be performed.
     """
 
-    global __learning_rate, __expected_max_error, __epoch_amount
+    global __learning_rate
 
     if learning_rate < 0:
         raise Exception("Learning rate must be positive value")
 
     __learning_rate = learning_rate
-    __expected_max_error = expected_max_error
-    __epoch_amount = epoch_amount
 
-    for epoch in range(__epoch_amount):
+    for epoch in range(epoch_amount):
         random.shuffle(data)
         rep_in_epoch = 0
         for single in data:
             input_point = single[0]
             expected = single[1]
 
-            __feed_forward(input_point)
+            error = __perform_learning_iteration([input_point], [expected])
 
-            error = __calculate_cross_entropy_cost(expected, __layers[-1])
+            print(f'Epoch: {epoch + 1}\n'
+                  f'Epoch percent finish: {round(100 * rep_in_epoch / len(data), 2)}%\n'
+                  f'Current error: {round(error, 4)}\n')
 
-            if rep_in_epoch % 100 == 0:
-                print(f'Epoch: {epoch + 1}\n'
-                      f'Epoch percent finish: {round(100 * rep_in_epoch / len(data), 2)}%\n'
-                      f'Current error: {round(error, 4)}\n')
-
-            if error < __expected_max_error:
-                return
-
-            __backpropagation(expected)
             rep_in_epoch += 1
 
 
 def save_to_xml_file(file_path: str) -> None:
     xml_root = ET.Element('root')
-
-    ET.SubElement(xml_root, 'epoch_amount').text = str(__epoch_amount)
-    ET.SubElement(xml_root, 'expected_max_error').text = str(__expected_max_error)
-    ET.SubElement(xml_root, 'learning_rate').text = str(__learning_rate)
 
     xml_layer_sizes = ET.SubElement(xml_root, 'layers_sizes')
 
@@ -233,6 +266,9 @@ def __backpropagation(expected_results: list):
     # error matrix initialized with output layer error
     errors_matrix = expected_results_transposed - __layers[-1]
 
+    change_for_weights = [np.array([]) for x in range(len(__weights_for_layers))]
+    change_for_biases = [np.array([]) for x in range(len(__biases_for_layers))]
+
     # for each weight / bias matrix
     for index in reversed(range(len(__weights_for_layers))):
         # get each layer weighted input in derivative of activation function
@@ -249,11 +285,37 @@ def __backpropagation(expected_results: list):
         delta_weights_matrix = np.matmul(gradient_matrix, __layers[index].transpose())
 
         # adjust weights and biases
-        __weights_for_layers[index] = __weights_for_layers[index] + delta_weights_matrix
-        __biases_for_layers[index] = __biases_for_layers[index] + gradient_matrix
+        change_for_weights[index] = delta_weights_matrix
+        change_for_biases[index] = gradient_matrix
 
         # calculate error for next layer in respect for its weight
         errors_matrix = np.matmul(__weights_for_layers[index].transpose(), errors_matrix)
+    return change_for_weights, change_for_biases
+
+
+def __perform_learning_iteration(data_samples: list, expected_results: list):
+    global __weights_for_layers, __biases_for_layers
+
+    all_change_for_weights = [[] for x in range(len(__weights_for_layers))]
+    all_change_for_biases = [[] for x in range(len(__biases_for_layers))]
+    errors = []
+    for data_sample, expected_result in zip(data_samples, expected_results):
+        __feed_forward(data_sample)
+        change_for_weights, change_for_biases = __backpropagation(expected_result)
+
+        errors.append(__calculate_cross_entropy_cost(expected_result, __layers[-1]))
+
+        for index in range(len(__weights_for_layers)):
+            all_change_for_weights[index].append(change_for_weights[index])
+            all_change_for_biases[index].append(change_for_biases[index])
+
+    for index in range(len(__weights_for_layers)):
+        delta_weights = np.mean(all_change_for_weights[index], axis=0)
+        delta_biases = np.mean(all_change_for_biases[index], axis=0)
+        __weights_for_layers[index] = __weights_for_layers[index] + delta_weights
+        __biases_for_layers[index] = __biases_for_layers[index] + delta_biases
+
+    return np.average(errors)
 
 
 def __calculate_cross_entropy_cost(expected_values, real_values):
@@ -261,13 +323,6 @@ def __calculate_cross_entropy_cost(expected_values, real_values):
     for expected, real in zip(expected_values, real_values):
         val_sum += expected * math.log(real)
     return -val_sum
-
-
-#def __calculate_mse_cost(expected_values, real_values):
-#    val_sum = 0
-#    for expected, real in zip(expected_values, real_values):
-#        val_sum = val_sum + pow(expected - real[0], 2)
-#    return val_sum / len(real_values)
 
 
 def __softmax(X):

@@ -31,9 +31,9 @@ def test_digit():
 
     print("Data done")
 
-    nn.initialize([784, 16, 16, 10], learning_rate=0.01, epoch_amount=3)
+    nn.initialize(784, 16, 16, 10)
 
-    nn.train_with_tuple_data(training_data)
+    nn.train_with_mini_batch_gradient_descent(training_data, batch_size=50)
 
     correct_prediction = 0
     for single in test_data:
@@ -64,19 +64,19 @@ def test():
 
     nn.initialize(784, 16, 16, 10)
 
-    nn.train_with_stochastic_gradient_descent(data, learning_rate=0.01, epoch_amount=10000)
+    nn.train_with_mini_batch_gradient_descent(data, learning_rate=0.01, epoch_amount=10000, batch_size=2)
 
     for single in data:
         prediction = [round(x, 3) for x in nn.predict(single[0])]
         print(f"{prediction}")
         print(f"{single[1]}")
         print(f"")
-
+    nn.save_to_xml_file('D:\\GoogleDriveMirror\\Projects\\NeuralNetworkProject\\nn_digit_trained.xml')
 
 
 if __name__ == '__main__':
-    test()
+    #test()
     #test_digit()
-    #view.run_gui()
+    view.run_gui()
 
 
