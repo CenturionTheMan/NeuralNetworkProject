@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="968075e9-0a82-46d9-97a1-74177d8771bb" name="Changes" comment="softmax + cross entropy?">
+    <list default="true" id="968075e9-0a82-46d9-97a1-74177d8771bb" name="Changes" comment="bug fixing + save file fix">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/neural_network.py" beforeDir="false" afterPath="$PROJECT_DIR$/neural_network.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nn_digit_trained.xml" beforeDir="false" afterPath="$PROJECT_DIR$/nn_digit_trained.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/view_mnist.py" beforeDir="false" afterPath="$PROJECT_DIR$/view_mnist.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -91,7 +88,14 @@
       <option name="project" value="LOCAL" />
       <updated>1707737815044</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="bug fixing + save file fix">
+      <created>1707842155457</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1707842155457</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -109,7 +113,8 @@
     <MESSAGE value="structure change -&gt; class structure dumped" />
     <MESSAGE value="simple gui update" />
     <MESSAGE value="softmax + cross entropy?" />
-    <option name="LAST_COMMIT_MESSAGE" value="softmax + cross entropy?" />
+    <MESSAGE value="bug fixing + save file fix" />
+    <option name="LAST_COMMIT_MESSAGE" value="bug fixing + save file fix" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

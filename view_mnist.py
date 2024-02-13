@@ -10,11 +10,9 @@ import neural_network as nn
 
 __pixel_size = 20
 __canvas_data = np.zeros(shape=(28, 28), dtype=int)
-__canvas = None
+__canvas_pixels_ids = np.zeros(shape=(28, 28), dtype=int)
+__canvas: Canvas = None
 __labels_perc = None
-
-__left_click_last_pos = tuple
-__right_click_last_pos = tuple
 
 
 def run_gui():
@@ -123,83 +121,31 @@ def init_nn_learning():
     print(f"Correctness: {round(perc_correct, 2)}%")
 
 
-def tmp():
-    tmp = [
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 203, 229, 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 26, 47, 47, 30, 95, 254, 215, 13, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45, 154, 185, 185, 223,
-        253, 253, 133, 175, 255, 188, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 110, 253, 253, 253, 246, 161,
-        228, 253, 253, 254, 92, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 245, 253, 158, 137, 21, 0, 48, 233,
-        253, 233, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 139, 254, 223, 25, 0, 0, 36, 170, 254, 244, 106, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 55, 212, 253, 161, 11, 26, 178, 253, 236, 113, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 155, 253, 228, 80, 223, 253, 253, 109, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 141, 253, 253, 253, 254, 253, 154, 29, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 110, 253, 253, 253, 254, 179, 38, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3,
-        171, 254, 254, 254, 179, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 171, 253, 253, 253,
-        253, 178, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 26, 123, 254, 253, 203, 156, 253, 200, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 93, 253, 254, 121, 13, 93, 253, 158, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64, 239, 253, 76, 8, 32, 219, 253, 126, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 133, 254, 191, 0, 5, 108, 234, 254, 106, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 132, 253, 190, 5, 85, 253, 236, 154, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 153,
-        253, 169, 192, 253, 253, 77, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 112, 253, 253, 254,
-        236, 129, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 118, 243, 191, 113, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-
-    ]
-
-    tmp = [1 if x > 0 else 0 for x in tmp]
-    for index in range(len(tmp)):
-        x = index % 28
-        y = math.floor(index / 28)
-        update_canvas(x, y, tmp[index])
-    on_canvas_data_changed()
-
-
 def on_left_mouse_click(event):
-    global __left_click_last_pos
     x_pos = event.x
     y_pos = event.y
     index_x = int(np.floor(x_pos / __pixel_size))
     index_y = int(np.floor(y_pos / __pixel_size))
-
-    if __left_click_last_pos[0] == index_x and __left_click_last_pos[1] == index_y:
-        return
-
-    __left_click_last_pos = (index_x, index_y)
 
     update_canvas(index_x, index_y, 1)
     Thread(target=on_canvas_data_changed).start()
 
 
 def on_right_mouse_click(event):
-    global __right_click_last_pos
-
     x_pos = event.x
     y_pos = event.y
     index_x = int(np.floor(x_pos / __pixel_size))
     index_y = int(np.floor(y_pos / __pixel_size))
-
-    if __right_click_last_pos[0] == index_x and __right_click_last_pos[1] == index_y:
-        return
-
-    __right_click_last_pos = (index_x, index_y)
 
     update_canvas(index_x, index_y, 0)
     Thread(target=on_canvas_data_changed).start()
 
 
 def update_canvas(x, y, value):
+    global __canvas_data, __canvas_pixels_ids
+
     if x > 27 or y > 27:
         return
-
-    fill_col = "gray24"
-    if value == 0:
-        fill_col = "white"
 
     for i in range(-1, 2):
         for j in range(-1, 2):
@@ -207,10 +153,25 @@ def update_canvas(x, y, value):
                 continue
             __canvas_data[j + y][i + x] = value
 
-    __canvas.create_rectangle(
-                            (x + -1) * __pixel_size, (-1 + y) * __pixel_size,
-                            (1 + x) * __pixel_size + __pixel_size,
-                            (1 + y) * __pixel_size + __pixel_size, fill=fill_col, outline=fill_col)
+    for i in range(x - 1, x + 2):
+        for j in range(y - 1, y + 2):
+            if i < 0 or i > 27 or j < 0 or j > 27:
+                continue
+
+            if value == 1:
+                fill_col = "gray24"
+                __canvas.delete(__canvas_pixels_ids[j][i])
+                __canvas_pixels_ids[j][i] = __canvas.create_rectangle(
+                                    i*__pixel_size, j*__pixel_size,
+                                    i*__pixel_size + __pixel_size,
+                                    j*__pixel_size + __pixel_size, fill=fill_col, outline=fill_col)
+            else:
+                fill_col = "white"
+                __canvas.delete(__canvas_pixels_ids[j][i])
+                __canvas_pixels_ids[j][i] = __canvas.create_rectangle(
+                    i * __pixel_size, j * __pixel_size,
+                    i * __pixel_size + __pixel_size,
+                    j * __pixel_size + __pixel_size, fill=fill_col, outline=fill_col)
 
 
 def clear_canvas():
