@@ -62,7 +62,7 @@ def test():
     for index in range(len(data)):
         data[index] = ([x/255.0 for x in data[index][0]], data[index][1])
 
-    nn.initialize(784, 16, 16, 10)
+    nn.initialize(784, 16, 16, 10, activation_function='sigmoid')
 
     nn.train_with_mini_batch_gradient_descent(data, learning_rate=0.01, epoch_amount=10000, batch_size=2)
 

@@ -12,13 +12,13 @@ __pixel_size = 20
 __canvas_data = np.zeros(shape=(28, 28), dtype=int)
 __canvas_pixels_ids = np.zeros(shape=(28, 28), dtype=int)
 __canvas: Canvas = None
-__labels_perc = None
+__labels_perc = [Label] * 10
 
 
 def run_gui():
     global __pixel_size, __canvas_data, __canvas, __labels_perc
 
-    nn.initialize(784, 16, 16, 10)
+    nn.initialize(784, 16, 16, 10, activation_function='relu')
 
     root = Tk()
     draw_width = 560
@@ -37,28 +37,24 @@ def run_gui():
     __canvas.bind("<B3-Motion>", on_right_mouse_click)
     __canvas.pack(side="left")
 
-    # BUTTONS
+    # CLEAR BUTTON
     clear_button = Button(frame, text="Clear canvas", command=clear_canvas, background='green', height=5, width=15)
     clear_button.pack(pady=10, padx=2)
 
-    # tmp_button = Button(frame, text="TMP", command=tmp)
-    # tmp_button.pack(pady=10)
+    # LABELS
+    for i in range(len(__labels_perc)):
+        __labels_perc[i] = Label(frame, text="Probability for " + str(i) + ": None", background="gray")
+        __labels_perc[i].pack(pady=1)
+
+    # NN BUTTONS
+    save_button = Button(frame, text="Save neural network\nto file", command=show_save_dialog)
+    save_button.pack(pady=(0, 10), padx=2, side='bottom')
+    open_button = Button(frame, text="Load neural network\nfrom file", command=show_open_dialog)
+    open_button.pack(pady=2, padx=2, side='bottom')
 
     init_learning_button = Button(frame, text="Initialize\nmachine learning", command=init_nn_learning_on_new_thread,
                                   background="yellow")
-    init_learning_button.pack(pady=10, padx=2)
-
-    open_button = Button(frame, text="Load neural network\nfrom file", command=show_open_dialog)
-    open_button.pack(pady=2, padx=2)
-
-    save_button = Button(frame, text="Save neural network\nto file", command=show_save_dialog)
-    save_button.pack(pady=(0, 20), padx=2)
-
-    # LABELS
-    __labels_perc = [None] * 10
-    for i in range(len(__labels_perc)):
-        __labels_perc[i] = Label(frame, text="Probability for " + str(i) + ": NONE", background="gray")
-        __labels_perc[i].pack(pady=1)
+    init_learning_button.pack(pady=10, padx=2, side='bottom')
 
     root.mainloop()
 
@@ -105,7 +101,7 @@ def init_nn_learning():
     print("Data loaded")
 
     nn.train_with_mini_batch_gradient_descent(training_data, epoch_amount=30, batch_size=50, expected_max_error=0.01,
-                                              learning_rate=0.07)
+                                              learning_rate=0.01)
 
     correct_prediction = 0
     for single in test_data:
