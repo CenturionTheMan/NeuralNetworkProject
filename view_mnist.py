@@ -88,15 +88,15 @@ def load_digit_data(path):
 
 def init_nn_learning():
     training_data1 = load_digit_data(
-        "D:\\GoogleDriveMirror\\Projects\\NeuralNetworkProject\\mnist_data\\mnist_train_data1.csv")
+        "mnist_data/mnist_train_data1.csv")
 
     training_data2 = load_digit_data(
-        "D:\\GoogleDriveMirror\\Projects\\NeuralNetworkProject\\mnist_data\\mnist_train_data1.csv")
+        "mnist_data/mnist_train_data1.csv")
 
     training_data = training_data1 + training_data2
 
     test_data = load_digit_data(
-        "D:\\GoogleDriveMirror\\Projects\\NeuralNetworkProject\\mnist_data\\mnist_test_data.csv")
+        "mnist_data/mnist_test_data.csv")
 
     print("Data loaded")
 

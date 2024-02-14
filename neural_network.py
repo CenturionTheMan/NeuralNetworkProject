@@ -60,7 +60,13 @@ def initialize(*layers_sizes: int, activation_function: str = 'ReLU'):
         __biases_for_layers.append(np.array([(x - 0.5) / 5 for x in np.random.rand(next_size, 1)]))
 
 
-def load_from_xml_file(file_path: str):
+def load_from_xml_file(file_path: str) -> None:
+    """
+    Load neural network parameters from an XML file.
+
+    :param file_path: The path to the XML file containing the parameters.
+    :return: None
+    """
     global __layers_sizes, __layers_before_activation, __weights_for_layers, __biases_for_layers, __activation_function
 
     tree = ET.parse(file_path)
@@ -92,7 +98,7 @@ def load_from_xml_file(file_path: str):
             row = int(bias_xml.attrib['row_index'])
             biases_matrix[row][0] = float(bias_xml.text)
         __biases_for_layers.append(biases_matrix)
-    print("DONE")
+    print("Loaded")
 
 
 def predict(inputs: list) -> list:
@@ -166,6 +172,12 @@ def train_with_mini_batch_gradient_descent(data: list[tuple[list, list]], learni
 
 
 def save_to_xml_file(file_path: str) -> None:
+    """
+    Save neural network parameters to an XML file.
+
+    :param file_path: The path to the XML file to save the parameters.
+    :return: None
+    """
     xml_root = ET.Element('root')
 
     xml_layer_sizes = ET.SubElement(xml_root, 'layers_sizes')
@@ -204,23 +216,30 @@ def save_to_xml_file(file_path: str) -> None:
 
 
 def __feed_forward(inputs: list) -> np.array:
+    """
+    Perform feedforward propagation through the neural network.
+
+    :param inputs: The input values to propagate through the network.
+    :return: The output values after passing through the network.
+    """
+    # Check if input array size matches the input layer size
     if np.shape(inputs) != (__layers_sizes[0],) and np.shape(inputs) != (__layers_sizes[0], 1):
         raise Exception(f'Wrong input array size! Should be {(__layers_sizes[0],)} or {(__layers_sizes[0], 1)} '
                         f'and was {np.shape(inputs)}')
 
-    # assign input layer values
+    # Assign input layer values
     __layers_before_activation[0] = np.array(inputs).reshape(len(inputs), 1)
     current_layer_value = __layers_before_activation[0]
 
-    # calculate values across layers, skipping layer at index 0 (input layer)
+    # Calculate values across layers, skipping input layer (index 0)
     for index in range(len(__layers_before_activation) - 1):
-        # multiply layer weights with its values
+        # Multiply layer weights with its values
         multiplied_by_weights_layer = np.matmul(__weights_for_layers[index], current_layer_value)
 
-        # add biases
+        # Add biases
         layer_with_added_biases = np.add(multiplied_by_weights_layer, __biases_for_layers[index])
 
-        # apply activation function
+        # Apply activation function
         if index == len(__layers_before_activation) - 2:
             activated_layer = __softmax(layer_with_added_biases)
         elif __activation_function == 'sigmoid':
@@ -230,29 +249,39 @@ def __feed_forward(inputs: list) -> np.array:
         else:
             raise Exception('Not supported activation function!')
 
-        # save results in next layer
+        # Save results in next layer
         __layers_before_activation[index + 1] = layer_with_added_biases
         current_layer_value = activated_layer
+
     return current_layer_value
 
 
 def __backpropagation(expected_results: list, predictions: list):
+    """
+    Perform backpropagation to update weights and biases based on prediction errors.
+
+    :param expected_results: The expected output results.
+    :param predictions: The predicted output results.
+    :return: Lists of changes for weights and biases.
+    """
+    # Check if expected results array size matches the output layer size
     if np.shape(expected_results) != (__layers_sizes[-1],):
         raise Exception(f'Wrong result array size! Should be {(__layers_sizes[-1],)} and was '
                         f'{np.shape(expected_results)}')
 
-    # Preparing expected_results list
+    # Prepare expected results list
     expected_results_transposed = np.array(expected_results).reshape(len(expected_results), 1)
 
-    # error matrix initialized with output layer error
+    # Initialize error matrix with output layer error
     errors_matrix = expected_results_transposed - predictions
 
+    # Initialize lists to store changes for weights and biases
     change_for_weights = [np.array([]) for x in range(len(__weights_for_layers))]
     change_for_biases = [np.array([]) for x in range(len(__biases_for_layers))]
 
-    # for each weight / bias matrix
+    # Iterate over each weight / bias matrix in reverse order
     for index in reversed(range(len(__weights_for_layers))):
-        # get each layer weighted input in derivative of activation function
+        # Get the derivative of activation function for each layer weighted input
         if index == len(__weights_for_layers) - 1:
             activation_derivative_layer = __softmax_derivative(__layers_before_activation[index + 1])
         elif __activation_function == 'sigmoid':
@@ -262,48 +291,74 @@ def __backpropagation(expected_results: list, predictions: list):
         else:
             raise Exception('Not supported activation function!')
 
-        # calculate gradient
+        # Calculate the gradient
         gradient_matrix = activation_derivative_layer * errors_matrix * __learning_rate
 
-        # calculate matrix with delta weights (values to change weights in given layer)
-        # NOTE: should be multiplied by unactivated layers??
+        # Calculate matrix with delta weights (values to change weights in given layer)
         delta_weights_matrix = np.matmul(gradient_matrix, __layers_before_activation[index].transpose())
 
-        # adjust weights and biases
+        # Adjust weights and biases
         change_for_weights[index] = delta_weights_matrix
         change_for_biases[index] = gradient_matrix
 
-        # calculate error for next layer in respect for its weight
+        # Calculate error for next layer with respect to its weights
         errors_matrix = np.matmul(__weights_for_layers[index].transpose(), errors_matrix)
+
     return change_for_weights, change_for_biases
 
 
 def __perform_learning_iteration(data_samples: list, expected_results: list):
+    """
+    Perform a single learning iteration using backpropagation algorithm.
+
+    :param data_samples: List of input data samples.
+    :param expected_results: List of expected output results.
+    :return: Average cross entropy error across all data samples.
+    """
     global __weights_for_layers, __biases_for_layers
 
+    # Initialize lists to store changes for weights and biases for all data samples
     all_change_for_weights = [[] for x in range(len(__weights_for_layers))]
     all_change_for_biases = [[] for x in range(len(__biases_for_layers))]
+
+    # Initialize error sum
     error_sum = 0
+
+    # Iterate over each data sample and its expected result
     for data_sample, expected_result in zip(data_samples, expected_results):
+        # Perform feedforward propagation to get predictions
         predictions = __feed_forward(data_sample)
+
+        # Perform backpropagation to get changes for weights and biases
         change_for_weights, change_for_biases = __backpropagation(expected_result, predictions)
 
+        # Calculate error and add it to the error sum
         error_sum += __calculate_cross_entropy_cost(expected_result, predictions)
 
+        # Store changes for weights and biases for the current data sample
         for index in range(len(__weights_for_layers)):
             all_change_for_weights[index].append(change_for_weights[index])
             all_change_for_biases[index].append(change_for_biases[index])
 
+    # Update weights and biases based on the average changes across all data samples
     for index in range(len(__weights_for_layers)):
         delta_weights = np.mean(all_change_for_weights[index], axis=0)
         delta_biases = np.mean(all_change_for_biases[index], axis=0)
         __weights_for_layers[index] = __weights_for_layers[index] + delta_weights
         __biases_for_layers[index] = __biases_for_layers[index] + delta_biases
 
-    return error_sum/len(data_samples)
+    # Return the average error across all data samples
+    return error_sum / len(data_samples)
 
 
 def __calculate_cross_entropy_cost(expected_values, real_values):
+    """
+    Calculate the cross-entropy cost between expected and real values.
+
+    :param expected_values: The expected values.
+    :param real_values: The real values.
+    :return: The cross-entropy cost.
+    """
     val_sum = 0
     for expected, real in zip(expected_values, real_values):
         val_sum += expected * math.log(real)
@@ -311,27 +366,63 @@ def __calculate_cross_entropy_cost(expected_values, real_values):
 
 
 def __softmax(x):
+    """
+    Compute the softmax activation function.
+
+    :param x: Input values.
+    :return: Softmax output.
+    """
     tmp = np.exp(x)
     return tmp / np.sum(tmp)
 
 
 def __sigmoid(x):
+    """
+    Compute the sigmoid activation function.
+
+    :param x: Input values.
+    :return: Sigmoid output.
+    """
     return 1 / (1 + np.exp(-x))
 
 
 def __ReLU(x):
+    """
+    Compute the ReLU (Rectified Linear Unit) activation function.
+
+    :param x: Input values.
+    :return: ReLU output.
+    """
     return x * (x > 0)
 
 
 def __sigmoid_derivative(x):
+    """
+    Compute the derivative of the sigmoid activation function.
+
+    :param x: Input values.
+    :return: Derivative of sigmoid.
+    """
     sig = __sigmoid(x)
     return sig * (1 - sig)
 
 
 def __softmax_derivative(x):
+    """
+    Compute the derivative of the softmax activation function.
+
+    :param x: Input values.
+    :return: Derivative of softmax.
+    """
     tmp = __softmax(x)
     return tmp * (1 - tmp)
 
 
 def __ReLU_derivative(x):
+    """
+    Compute the derivative of the ReLU activation function.
+
+    :param x: Input values.
+    :return: Derivative of ReLU.
+    """
     return 1. * (x >= 0)

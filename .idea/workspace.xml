@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="968075e9-0a82-46d9-97a1-74177d8771bb" name="Changes" comment="bug fixing + save file fix">
+    <list default="true" id="968075e9-0a82-46d9-97a1-74177d8771bb" name="Changes" comment="relu add + minor gui changes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/neural_network.py" beforeDir="false" afterPath="$PROJECT_DIR$/neural_network.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nn_digit_trained.xml" beforeDir="false" afterPath="$PROJECT_DIR$/nn_digit_trained.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/view_mnist.py" beforeDir="false" afterPath="$PROJECT_DIR$/view_mnist.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -98,7 +99,14 @@
       <option name="project" value="LOCAL" />
       <updated>1707842155457</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="relu add + minor gui changes">
+      <created>1707928238923</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1707928238923</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -117,6 +125,7 @@
     <MESSAGE value="simple gui update" />
     <MESSAGE value="softmax + cross entropy?" />
     <MESSAGE value="bug fixing + save file fix" />
-    <option name="LAST_COMMIT_MESSAGE" value="bug fixing + save file fix" />
+    <MESSAGE value="relu add + minor gui changes" />
+    <option name="LAST_COMMIT_MESSAGE" value="relu add + minor gui changes" />
   </component>
 </project>
